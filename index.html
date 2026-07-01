@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kimi Airdrop - Official Claim</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%); }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); }
+        .gradient-text { background: linear-gradient(90deg, #22d3ee, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <div id="toastContainer" class="fixed top-4 right-4 z-50"></div>
+
+    <nav class="fixed w-full z-50 glass border-b border-slate-700">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl flex items-center justify-center font-bold text-xl">K</div>
+                <span class="font-bold text-2xl">Kimi</span>
+            </div>
+            <div id="walletDisplay" class="hidden items-center gap-3 bg-slate-800 px-4 py-2 rounded-2xl border border-slate-600">
+                <span id="walletAddress" class="font-mono text-sm"></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-24 pb-16 px-6 max-w-4xl mx-auto">
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4">Kimi Airdrop Claim</h1>
+            <p class="text-xl text-slate-400">Claim your 100,000 KIMI tokens on BNB Chain</p>
+            <div class="inline-flex items-center gap-2 mt-6 bg-emerald-500/10 text-emerald-400 px-6 py-2 rounded-2xl text-sm font-medium">
+                <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                BNB Chain • Live
+            </div>
+        </div>
+
+        <div class="glass rounded-3xl p-8 border border-slate-700 shadow-2xl">
+            <!-- Network Info -->
+            <div class="flex justify-between items-center mb-8 p-4 bg-slate-900/50 rounded-2xl">
+                <div>
+                    <p class="text-slate-400 text-sm">Network</p>
+                    <p class="font-semibold text-lg">BNB Chain (BSC)</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-slate-400 text-sm">Claim Amount</p>
+                    <p class="font-bold text-3xl text-cyan-400">100,000 KIMI</p>
+                </div>
+            </div>
+
+            <div id="notConnected">
+                <div class="text-center py-12">
+                    <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-3xl flex items-center justify-center text-5xl shadow-inner">🎁</div>
+                    <h3 class="text-2xl font-semibold mb-3">Connect Your Wallet</h3>
+                    <p class="text-slate-400 max-w-sm mx-auto">Use MetaMask, Trust Wallet, Rainbow, or any EVM-compatible wallet</p>
+                    
+                    <button onclick="connectWallet()" 
+                            class="mt-10 w-full py-5 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 rounded-2xl font-semibold text-lg transition-all">
+                        Connect Wallet
+                    </button>
+                </div>
+            </div>
+
+            <div id="connected" class="hidden">
+                <div class="space-y-6">
+                    <div class="p-6 bg-slate-900/70 rounded-2xl">
+                        <div class="flex justify-between text-sm mb-4">
+                            <span class="text-slate-400">Your Allocation</span>
+                            <span class="font-mono font-bold text-emerald-400">100,000 KIMI</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-400">Gas Fee Estimate</span>
+                            <span class="text-amber-400">≈ 0.001 BNB (paid by you)</span>
+                        </div>
+                    </div>
+
+                    <button onclick="claimTokens()" 
+                            id="claimBtn"
+                            class="w-full py-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 rounded-3xl font-bold text-xl transition-all active:scale-95">
+                        Claim 100,000 KIMI
+                    </button>
+
+                    <p class="text-center text-xs text-slate-500">
+                        You will be asked to sign a transaction.<br>
+                        <strong>Only proceed if you trust this dApp.</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 text-center text-sm text-slate-400">
+            <p class="mb-2">⚠️ Always verify the contract address before claiming.</p>
+            <p id="contractAddress" class="font-mono text-xs break-all"></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script>
+        let provider, signer, userAddress, isConnected = false;
+        const CONTRACT_ADDRESS = "YOUR_KIMI_AIRDROP_CONTRACT_ADDRESS_HERE"; // ← Replace with real address
+        const CHAIN_ID = 56; // BNB Chain
+
+        async function connectWallet() {
+            if (typeof window.ethereum === "undefined") {
+                alert("Please install MetaMask or another wallet");
+                return;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                userAddress = accounts[0];
+
+                // Check/switch to BNB Chain
+                const network = await provider.getNetwork();
+                if (network.chainId !== CHAIN_ID) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x38' }]
+                        });
+                    } catch (switchError) {
+                        alert("Please switch to BNB Chain manually");
+                    }
+                }
+
+                isConnected = true;
+                document.getElementById("notConnected").classList.add("hidden");
+                document.getElementById("connected").classList.remove("hidden");
+                document.getElementById("walletDisplay").classList.remove("hidden");
+                document.getElementById("walletAddress").textContent = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+                
+                showToast("Wallet connected successfully", "success");
+            } catch (error) {
+                console.error(error);
+                showToast("Connection failed", "error");
+            }
+        }
+
+        async function claimTokens() {
+            if (!isConnected) return;
+
+            const btn = document.getElementById("claimBtn");
+            btn.disabled = true;
+            btn.textContent = "Signing...";
+
+            try {
+                // Example: Simple claim call (replace with your actual contract ABI & method)
+                const contractABI = ["function claim() external payable"]; // Update with real ABI
+                const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, signer);
+                
+                const tx = await contract.claim({ value: ethers.utils.parseEther("0.001") });
+                showToast("Transaction sent! Waiting for confirmation...", "info");
+                
+                await tx.wait();
+                showToast("✅ Successfully claimed 100,000 KIMI!", "success");
+                
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "Claim failed", "error");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Claim 100,000 KIMI";
+            }
+        }
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.className = `px-6 py-4 rounded-2xl text-sm font-medium mb-2 ${type === "success" ? "bg-emerald-500/20 text-emerald-400" : type === "error" ? "bg-red-500/20 text-red-400" : "bg-slate-700 text-slate-300"}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        // Replace with your real contract address
+        document.getElementById("contractAddress").textContent = CONTRACT_ADDRESS || "0x... (Add your contract address)";
+
+        window.addEventListener("load", () => {
+            console.log("%cKimi Airdrop - Official Frontend", "color: cyan; font-size: 14px");
+        });
+    </script>
+</body>
+</html>
